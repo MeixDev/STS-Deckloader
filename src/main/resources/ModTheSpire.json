@@ -7,5 +7,5 @@
   "sts_version": "11-15-2018",
   "mts_version": "3.6.0",
   "dependencies": ["basemod"],
-  "update_json": "https://api.github.com/repos/kiooeht/ExampleMod/releases/latest"
+  "update_json": "https://github.com/MeixDev/STS-Deckloader/releases/latest"
 }
