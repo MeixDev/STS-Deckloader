@@ -10,6 +10,8 @@ It adds 2 new commands, `deckload` and `deckbackup`. As you probably guessed, th
 
 * `deckbackup output` will save your current build to {gamedir}/builds/output.txt.
 * `deckload output` will attempt to replace your build with the one contained in {gamedir}/builds/output.txt
+* `dumpcontent output` will dump all the cards and relics loaded by your game to {gamedir}/builds/output.txt.\
+It's absolutely not perfect, especially with the raw descriptions, but could help if you want to see which cards could be interesting for the deck you're building.
 
 ## Credits ##
 
@@ -23,7 +25,6 @@ Dependences:
 
 ## Known Issues ##
 
-* When loading a deck, your decklist menu may be completely fucked up. If it happens, just make the game autosave (By changing room for example), then save and quit. It should do the trick.
 * It was kinda hard to patch BaseMod's DevConsole to add my own things inside. As such, there is no AutoComplete and every single of your commands used with the mod will result in an "invalid command" answer, in addition of the real output.\
 I don't think I can do anything for it now. I'm not quite satisfied with having to use BaseMod's console, and I may try to create a real menu or something for it !
 
@@ -32,7 +33,7 @@ I don't think I can do anything for it now. I'm not quite satisfied with having 
 * Changing the life pool of your character. Allowing you to start with, for example, 12HP out of 45.
 * Making the deckload able to optionally load a specific room, to allow for "Puzzle Fights", where you have to battle a specific enemy, elite or boss with what the build gave you.
 * Some way to make the build contain a character, an ascension level or custom modifiers. I'm not quite sure it is possible atm.
-* Making the decklist able to contain "already initialized cards", like those cards who get buffed permanently for the game through specific actions.
+* Making the decklist able to contain "already initialized cards", like those cards who get buffed permanently for the game through specific actions. Same with already initialized relics.
 * ?.. I'm open to ideas ! 
 
 ## File structure ##
