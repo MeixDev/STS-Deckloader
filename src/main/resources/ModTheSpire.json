@@ -3,7 +3,7 @@
   "name": "Deckloader",
   "author_list": ["MeixDev"],
   "description": "Allows you to backup and load decks and relics sets through BaseMod's console.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "sts_version": "11-15-2018",
   "mts_version": "3.6.0",
   "dependencies": ["basemod"],

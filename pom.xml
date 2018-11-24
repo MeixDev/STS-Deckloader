@@ -3,7 +3,7 @@
 
     <groupId>deckloader</groupId>
     <artifactId>deckloader</artifactId>
-    <version>v0.0.1</version>
+    <version>v0.0.2</version>
     <packaging>jar</packaging>
 
     <name>Deckloader</name>

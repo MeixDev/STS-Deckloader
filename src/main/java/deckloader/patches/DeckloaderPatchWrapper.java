@@ -1,7 +1,9 @@
 package deckloader.patches;
 
 import basemod.BaseMod;
+import basemod.ReflectionHacks;
 import basemod.helpers.ConvertHelper;
+import basemod.patches.whatmod.WhatMod;
 import com.evacipated.cardcrawl.modthespire.lib.SpireEnum;
 import basemod.DevConsole;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInsertPatch;
@@ -17,8 +19,12 @@ import com.megacrit.cardcrawl.relics.AbstractRelic;
 import com.megacrit.cardcrawl.unlock.UnlockTracker;
 import com.megacrit.cardcrawl.vfx.cardManip.ShowCardAndObtainEffect;
 import deckloader.DeckloaderMod;
+import deckloader.helpers.ModTester;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class DeckloaderPatchWrapper {
 
@@ -58,6 +64,15 @@ public class DeckloaderPatchWrapper {
                     }
                     break;
                 }
+                case "dumpcontent": {
+                    try {
+                        cmdDumpcontent(tokens);
+                    }
+                    catch (Exception e) {
+                        DeckloaderMod.logger.catching(e);
+                        cmdDumpcontentError();
+                    }
+                }
                 default: {
                     DeckloaderMod.logger.info("The command isn't one of DeckloaderMod.");
                     break;
@@ -92,7 +107,7 @@ public class DeckloaderPatchWrapper {
                 if (state == null) continue;
                 else if (state.equals("cards")) {
                     String[] elements = line.split(" • ");
-                    AbstractCard c = CardLibrary.getCard(elements[0]);
+                    AbstractCard c = CardLibrary.getCard(elements[0]).makeCopy();
                     int upgradeCount = 0;
                     upgradeCount = ConvertHelper.tryParseInt(elements[1], 0);
                     for (int i = 0; i < upgradeCount; i++) { c.upgrade(); }
@@ -144,6 +159,88 @@ public class DeckloaderPatchWrapper {
             return;
         }
 
+        public static void cmdDumpcontent(String[] tokens)
+                throws IOException {
+            if (tokens.length < 2) {
+                cmdDumpcontentHelp();
+                return;
+            }
+
+            String filename = tokens[1];
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter("./builds/" + filename + ".txt"));
+
+            writer.write("[Cards]");
+            writer.write("\r\n");
+            writer.write("[Modded?/ModName] | [CardColor] | [Type] | [Rarity] | [Cost] | [CardID] | [Name] | [Raw Description]");
+            writer.write("\r\n");
+            for (AbstractCard card : CardLibrary.getAllCards()) {
+                String modname = null;
+                if (ModTester.isModded(card.getClass()) == true) { modname = ModTester.getModName(card.getClass()); }
+                else { modname = "Vanilla"; }
+                writer.write(modname + " | " + card.color.name() + " | " + card.type.name() + " | " + card.rarity.name() + " | " + card.cost + " | " + card.cardID + " | " + card.name + " | " + card.rawDescription);
+                writer.write("\r\n");
+                DeckloaderMod.logger.info("Deckdumping: Dumped card \"" + card.cardID + ".");
+            }
+
+            writer.write("[Relics]");
+            writer.write("\r\n");
+            writer.write("[Modded?/Modname] | [Tier] | [RelicID] | [Name] | [Description]");
+            writer.write("\r\n");
+
+            HashMap<String, AbstractRelic> sharedRelics = (HashMap<String, AbstractRelic>) ReflectionHacks
+                    .getPrivateStatic(RelicLibrary.class, "sharedRelics");
+            WriteRelic(writer, sharedRelics);
+            HashMap<String, AbstractRelic> redRelics = (HashMap<String, AbstractRelic>) ReflectionHacks
+                    .getPrivateStatic(RelicLibrary.class, "redRelics");
+            WriteRelic(writer, redRelics);
+            HashMap<String, AbstractRelic> greenRelics = (HashMap<String, AbstractRelic>) ReflectionHacks
+                    .getPrivateStatic(RelicLibrary.class, "greenRelics");
+            WriteRelic(writer, greenRelics);
+            HashMap<String, AbstractRelic> blueRelics = (HashMap<String, AbstractRelic>) ReflectionHacks
+                    .getPrivateStatic(RelicLibrary.class, "blueRelics");
+            WriteRelic(writer, blueRelics);
+
+            DeckloaderMod.logger.info("Deckdumping: Dumped all relics.");
+
+/*
+            writer.write("[Modded Relics]");
+            writer.write("\r\n");
+
+            //Modded relics. BaseMod got something for me here. Hurray!
+            HashMap<AbstractCard.CardColor, HashMap<String, AbstractRelic>> customRelics = BaseMod.getAllCustomRelics();
+            for (HashMap.Entry<AbstractCard.CardColor, HashMap<String, AbstractRelic>> en : customRelics.entrySet()) {
+                String color = en.getKey().name();
+                HashMap<String, AbstractRelic> relics = en.getValue();
+                for (HashMap.Entry<String, AbstractRelic> _en : relics.entrySet()) {
+                    AbstractRelic r = _en.getValue();
+                    writer.write(color + " | " + r.tier + " | " + r.relicId + " | " + r.name + " | " + r.description);
+                    writer.write("\r\n");
+                    DeckloaderMod.logger.info("Deckdumping: Dumped custom relic \"" + r.name + "\".");
+                }
+            }
+*/
+
+            writer.close();
+
+            DevConsole.log("Cards and relics successfully dumped in " + filename + ".txt !");
+
+            return;
+        }
+
+        private static void WriteRelic(BufferedWriter writer, HashMap<String, AbstractRelic> blueRelics) throws IOException {
+            if (blueRelics != null) {
+                for (HashMap.Entry<String, AbstractRelic> _en : blueRelics.entrySet()) {
+                    AbstractRelic r = _en.getValue();
+                    String modname = null;
+                    if (ModTester.isModded(r.getClass()) == true) { modname = ModTester.getModName(r.getClass()); }
+                    else { modname = "Vanilla"; }
+                    writer.write( modname + " | " + r.tier + " | " + r.relicId + " | " + r.name + " | " + r.description);
+                    writer.write("\r\n");
+                }
+            }
+        }
+
         public static void cmdDeckloadHelp() {
             couldNotParse();
             basemod.DevConsole.log("You need to enter the name of the file you want to load.");
@@ -164,6 +261,17 @@ public class DeckloaderPatchWrapper {
 
         public static void cmdDeckbackupError() {
             basemod.DevConsole.log("Something wrong happened while trying to write to the file.");
+        }
+
+        public static void cmdDumpcontentHelp() {
+            couldNotParse();
+            basemod.DevConsole.log("You need to enter the name of the file to dump all cards and relics ids to.");
+            basemod.DevConsole.log("It will be located at GameFolder/builds.");
+            basemod.DevConsole.log("The extension will be added automatically.");
+        }
+
+        public static void cmdDumpcontentError() {
+            basemod.DevConsole.log("Something wrong happened while dumping cards and relics.");
         }
 
         public static void couldNotParse() {
